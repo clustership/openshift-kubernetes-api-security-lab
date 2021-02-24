@@ -10,6 +10,8 @@ After login to the kube API.
 
 ```bash
 $ export API_PORT=8387
+$ export NS=curl-debug
+$ oc new-project ${NS}
 $ oc proxy --port=${API_PORT} &
 Starting to serve on 127.0.0.1:8387
 ```
@@ -56,7 +58,7 @@ Send json request but accept yaml:
 
 ```bash
 $ curl --request POST \
-  --url http://localhost:${API_PORT}/api/v1/namespaces/curl-debug/pods \
+  --url http://localhost:${API_PORT}/api/v1/namespaces/${NS}/pods \
   --header 'accept: application/yaml' \
   --header 'content-type: application/json' \
   --data '{
@@ -80,3 +82,42 @@ $ curl --request POST \
   }
 }'
 
+
+## Non whitelisted requests
+
+* Non-whitelisted requests must be rejected with HTTP response code 405 Method not allowed
+
+```bash
+$ curl --request PUT \
+  --url http://localhost:${API_PORT}/api/v1/namespaces/${NS}/pods \
+  --header 'accept: application/yaml' \
+  --header 'content-type: application/json' \
+  --data '{
+  "kind": "Pod",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "api-validation-pod"
+  },
+  "spec": {
+    "containers": [
+      {
+        "name": "api-validation",
+        "image": "quay.io/xymox/vue-todos-ubi8:main",
+        "command": [
+          "/bin/sh",
+          "-c",
+          "sleep infinity"
+        ]
+      }
+    ]
+  }
+}'
+
+apiVersion: v1
+code: 405
+details: {}
+kind: Status
+message: the server does not allow this method on the requested resource
+metadata: {}
+reason: MethodNotAllowed
+status: Failure
