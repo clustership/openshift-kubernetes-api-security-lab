@@ -121,3 +121,76 @@ message: the server does not allow this method on the requested resource
 metadata: {}
 reason: MethodNotAllowed
 status: Failure
+```
+
+## Content length forgering
+
+
+```bash
+$ curl --request PUT \
+  --url http://localhost:${API_PORT}/api/v1/namespaces/${NS}/pods \
+  --header 'accept: application/yaml' \
+  --header 'content-type: application/json' \
+  --header 'content-length: 300' \
+  --data '{
+  "kind": "Pod",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "api-validation-pod"
+  },
+  "spec": {
+    "containers": [
+      {
+        "name": "api-validation",
+        "image": "quay.io/xymox/vue-todos-ubi8:main",
+        "command": [
+          "/bin/sh",
+          "-c",
+          "sleep infinity"
+        ]
+      }
+    ]
+  }
+}'
+apiVersion: v1
+code: 400
+kind: Status
+message: |-
+  the object provided is unrecognized (must be of type Pod): couldn't get version/kind; json parse error: unexpected end of JSON input ({
+    "kind": "Pod",
+    "apiVersi ...)
+metadata: {}
+reason: BadRequest
+status: Failure
+```
+
+```bash
+$ curl --request PUT \
+  --url http://localhost:${API_PORT}/api/v1/namespaces/${NS}/pods \
+  --header 'accept: application/yaml' \
+  --header 'content-type: application/json' \
+  --header 'content-length: 400' \
+  --data '{
+  "kind": "Pod",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "api-validation-pod"
+  },
+  "spec": {
+    "containers": [
+      {
+        "name": "api-validation",
+        "image": "quay.io/xymox/vue-todos-ubi8:main",
+        "command": [
+          "/bin/sh",
+          "-c",
+          "sleep infinity"
+        ]
+      }
+    ]
+  }
+}'
+# hang up (timeout after a while).
+```
+
+
