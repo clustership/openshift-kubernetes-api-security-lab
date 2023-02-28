@@ -248,3 +248,78 @@ metadata: {}
 reason: Invalid
 status: Failure
 ```
+
+
+## Try to forge Content-type header
+
+```bash
+# Working request
+
+$ curl -k --verbose -H 'Content-Type: application/json' --request GET http://127.0.0.1:8387/api/
+Note: Unnecessary use of -X or --request, GET is already inferred.
+*   Trying 127.0.0.1...
+* TCP_NODELAY set
+* Connected to 127.0.0.1 (127.0.0.1) port 8387 (#0)
+> GET /api/ HTTP/1.1
+> Host: 127.0.0.1:8387
+> User-Agent: curl/7.61.1
+> Accept: */*
+> Content-Type: application/json
+>
+< HTTP/1.1 200 OK
+< Audit-Id: f5170c35-dbc1-4aa0-84dd-71f56374f532
+< Cache-Control: no-cache, private
+< Content-Length: 184
+< Content-Type: application/json
+< Date: Tue, 28 Feb 2023 09:32:44 GMT
+< X-Kubernetes-Pf-Flowschema-Uid: 44c2e9c8-ffa5-4e7e-bd5e-bfdd68492a38
+< X-Kubernetes-Pf-Prioritylevel-Uid: f25f62c0-a03c-4895-b06a-17889e49a681
+<
+{
+  "kind": "APIVersions",
+  "versions": [
+    "v1"
+  ],
+  "serverAddressByClientCIDRs": [
+    {
+      "clientCIDR": "0.0.0.0/0",
+      "serverAddress": "172.16.1.214:6443"
+    }
+  ]
+* Connection #0 to host 127.0.0.1 left intact
+
+
+# Forged request
+
+$ curl -k --verbose -H 'Content-Type: application/exe' --request GET http://127.0.0.1:8387/api/
+Note: Unnecessary use of -X or --request, GET is already inferred.
+*   Trying 127.0.0.1...
+* TCP_NODELAY set
+* Connected to 127.0.0.1 (127.0.0.1) port 8387 (#0)
+> GET /api/ HTTP/1.1
+> Host: 127.0.0.1:8387
+> User-Agent: curl/7.61.1
+> Accept: */*
+> Content-Type: application/exe
+>
+< HTTP/1.1 406 Not Acceptable
+< Audit-Id: ba857783-ffd1-4196-8f85-d88962590894
+< Cache-Control: no-cache, private
+< Content-Length: 182
+< Content-Type: application/json
+< Date: Tue, 28 Feb 2023 09:33:07 GMT
+< X-Kubernetes-Pf-Flowschema-Uid: 44c2e9c8-ffa5-4e7e-bd5e-bfdd68492a38
+< X-Kubernetes-Pf-Prioritylevel-Uid: f25f62c0-a03c-4895-b06a-17889e49a681
+<
+{
+  "kind": "Status",
+  "apiVersion": "v1",
+  "metadata": {},
+  "status": "Failure",
+  "message": "406: Not Acceptable",
+  "reason": "NotAcceptable",
+  "details": {},
+  "code": 406
+* Connection #0 to host 127.0.0.1 left intact
+
+```
